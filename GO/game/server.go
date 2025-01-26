@@ -7,6 +7,8 @@ import (
 )
 
 func StartServer() {
+	// init the correct number
+	InitializeGame()
 	listener, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
@@ -45,7 +47,7 @@ func StartServer() {
 			// Check if the guess matches the correct answer
 			var response, prefix string
 			if ValidateGuessCorrectness(numGuess) {
-				// prefix = GeneratePrefix()
+				prefix = GeneratePrefix(numGuess)
 				response = "Congratulations! You guessed the correct number!"
 			} else {
 				response = "Try again!"

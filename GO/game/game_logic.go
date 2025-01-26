@@ -4,24 +4,87 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 )
 
+var (
+	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+)
+
+var correctNumber int
+
 func ValidateGuess(input string) (int, error) {
+	// trim any leading/trailing whitespace
+	input = strings.TrimSpace(input)
 	guess, err := strconv.Atoi(input)
-	return guess, err
+	if err != nil {
+		return -1, fmt.Errorf("string conversion didn't work %s", err)
+	}
+	if guess < 1 || guess > 100 {
+		return -1, fmt.Errorf("guess is out of range: %d", guess)
+	}
+	return guess, nil
+}
+
+// InitializeGame generates the correct number once and stores it
+func InitializeGame() {
+	correctNumber = generateCorrectNumber()
+	fmt.Printf("Correct number (server-side): %d\n", correctNumber) // Debugging/logging purpose
+}
+
+func generateCorrectNumber() int {
+	number := rng.Intn(100) + 1
+
+	// Adjust the number based on whether it is odd or even
+	if number%2 != 0 {
+		primes := []int{2, 3, 5, 7, 11, 13}
+		number += primes[rand.Intn(len(primes))]
+	} else {
+		number = reverseDigits(number)
+	}
+
+	// Apply a transformation to the number
+	if number >= 100 {
+		number /= 2
+	} else if number < 50 {
+		number *= 2
+	}
+
+	return number
+}
+
+func reverseDigits(n int) int {
+	reversed := 0
+
+	// Handle negative numbers
+	isNegative := n < 0
+	if isNegative {
+		n = -n // Make the number positive for reversal
+	}
+
+	// Reverse the digits
+	for n > 0 {
+		remainder := n % 10
+		reversed = reversed*10 + remainder
+		n /= 10
+	}
+
+	// Restore the negative sign if the number was negative
+	if isNegative {
+		reversed = -reversed
+	}
+
+	return reversed
 }
 
 func ValidateGuessCorrectness(guess int) bool {
-	return guess == 42
+	return guess == correctNumber
 }
 
-func GeneratePrefix(guess int) {
-	// Initialize a random seed for unpredictable results
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-
+func GeneratePrefix(guess int) string {
 	// Randomly select one of three different string formats
-	formatChoice := rand.Intn(3)
+	formatChoice := rng.Intn(3)
 	var prefix string
 
 	// Conditional logic based on the guess
@@ -42,7 +105,7 @@ func GeneratePrefix(guess int) {
 		}
 	case 2:
 		// Case 2: Add a random element to the string
-		randomFact := rand.Intn(100)
+		randomFact := rng.Intn(100)
 		prefix = fmt.Sprintf("The number %d has a special fact: %d is a random number generated.", guess, randomFact)
 	}
 
@@ -55,5 +118,5 @@ func GeneratePrefix(guess int) {
 		prefix = fmt.Sprintf("%s Your guess is in the high-risk zone!", prefix)
 	}
 
-	fmt.Sprintf("%s", prefix)
+	return fmt.Sprintf("%s", prefix)
 }
