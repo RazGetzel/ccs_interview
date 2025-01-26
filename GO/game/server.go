@@ -49,6 +49,8 @@ func StartServer() {
 			if ValidateGuessCorrectness(numGuess) {
 				prefix = GeneratePrefix(numGuess)
 				response = "Congratulations! You guessed the correct number!"
+				// Reinitialize the game to generate a new number
+				InitializeGame()
 			} else {
 				response = "Try again!"
 			}
